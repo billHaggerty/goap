@@ -4,7 +4,7 @@
 /// The goap library.
 ///
 /// This is an awesome library. More dartdocs go here.
-library goap;
+library goap_bh;
 
 // TODO: Export any libraries intended for clients of this package.
 

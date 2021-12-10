@@ -3,7 +3,7 @@
 
 library goap.example.eshop_cart;
 
-import 'package:goap/goap.dart';
+import 'package:goap_bh/goap_bh.dart';
 import 'dart:collection';
 import 'dart:async';
 

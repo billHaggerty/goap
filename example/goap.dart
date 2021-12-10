@@ -3,7 +3,7 @@
 
 library goap.example;
 
-import 'package:goap/goap.dart';
+import 'package:goap_bh/goap_bh.dart';
 
 class LumberjackAction extends Action<SimpleState> {
   final String name;

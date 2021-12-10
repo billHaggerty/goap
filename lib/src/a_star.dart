@@ -3,12 +3,12 @@
  *
  */
 
-library goap.a_star;
+library goap_bh.a_star;
 
 import 'dart:collection';
 import 'dart:async';
 
-import '../goap.dart';
+import '../goap_bh.dart';
 
 /**
  * Mixin class with which the nodes (graph vertices) should be extended. For
