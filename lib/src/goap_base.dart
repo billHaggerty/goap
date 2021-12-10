@@ -111,17 +111,17 @@ class Action<T extends State> extends EdgeType<T> {
 typedef bool ApplicabilityFunction<T extends State>(T state);
 typedef void ApplyAction<T extends State>(T state);
 
-class FindPathParams {
+class FindPathParams<T extends Action> {
   FindPathParams(this.availableActions, this.previouslyFailedAction);
-  final Set<Action> availableActions;
-  Action previouslyFailedAction;
+  final Set<T> availableActions;
+  T previouslyFailedAction;
 
   /// The number of times the action is being avoided before it's tried again.
   /// Set to [:-1:] to avoid the action for the whole time of path finding.
   int countdownFailedActionAvoidance = 1;
 }
 
-class Planner {
+class Planner<T extends Action> {
   Planner();
 
   /// Plan a sequence of action that bring you from [origin] to [desiredState]
@@ -132,15 +132,16 @@ class Planner {
   /// We avoid it once time by default, but can avoid it for longer periods
   /// by setting [countdownFailedActionAvoidance]. Value [:-1:] is magical: it
   /// will avoid [previouslyFailedAction] for the whole duration of the plan.
-  Future<Queue<Action>> plan(
-      State origin, DesiredState desiredState, Iterable<Action> actions,
-      {Action previouslyFailedAction,
+  Future<Queue<T>> plan(
+      State origin, DesiredState desiredState, Iterable<T> actions,
+      {T previouslyFailedAction,
       int countdownFailedActionAvoidance: 1,
       bool singleUseActions: false}) {
-    if (actions is! Set<Action>) {
-      actions = new Set<Action>.from(actions);
+    if (actions is! Set<T>) {
+      actions = new Set<T>.from(actions);
     }
-    FindPathParams params = new FindPathParams(actions, previouslyFailedAction);
+    FindPathParams<T> params =
+        new FindPathParams<T>(actions, previouslyFailedAction);
     params.countdownFailedActionAvoidance = countdownFailedActionAvoidance;
     print("Starting search.");
     return _aStar.findPath(origin, desiredState, actions,
@@ -148,7 +149,7 @@ class Planner {
   }
 
   // TODO: optional parameter (dependency injection).
-  final AStar<State, Action> _aStar = new AStar<State, Action>();
+  final AStar<State, T> _aStar = new AStar<State, T>();
 }
 
 Set _getMapKeysUnion(Map a, Map b) {
