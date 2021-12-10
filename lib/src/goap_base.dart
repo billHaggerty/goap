@@ -109,7 +109,7 @@ class Action<T extends State> extends EdgeType<T> {
 }
 
 typedef bool ApplicabilityFunction<T extends State>(T state);
-typedef Null ApplyAction<T extends State>(T state);
+typedef void ApplyAction<T extends State>(T state);
 
 class FindPathParams {
   FindPathParams(this.availableActions, this.previouslyFailedAction);
