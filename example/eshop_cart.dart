@@ -29,81 +29,58 @@ class EshopCartPlanner {
       new EshopCartModule("Name", (EshopCartState s) {
         s.haveName = true;
       }),
-
       new EshopCartModule("Country", (EshopCartState s) {
         s.haveCountry = true;
-      },
-      prerequisite: (EshopCartState s) => s.needsShippingAddress),
-
-      new EshopCartModule("Zip Code", (EshopCartState s) {
+      }, prerequisite: (EshopCartState s) => s.needsShippingAddress),
+      EshopCartModule("Zip Code", (EshopCartState s) {
         s.haveZipcode = true;
-      },
-      prerequisite: (EshopCartState s) => s.haveCountry),
-
+      }, prerequisite: (EshopCartState s) => s.haveCountry),
       new EshopCartModule("US State", (EshopCartState s) {
         s.haveUsState = true;
-      },
-      prerequisite: (EshopCartState s) => s.haveCountry && s.isUs),
-
+      }, prerequisite: (EshopCartState s) => s.haveCountry && s.isUs),
       new EshopCartModule("City", (EshopCartState s) {
         s.haveCity = true;
-      },
-      prerequisite: (EshopCartState s) => s.haveStreet),
-
-
-      new EshopCartModule("Confirm City (guessed from ZIP)", (EshopCartState s) {
+      }, prerequisite: (EshopCartState s) => s.haveStreet),
+      new EshopCartModule("Confirm City (guessed from ZIP)",
+          (EshopCartState s) {
         s.haveCity = true;
       },
-      prerequisite: (EshopCartState s) => s.haveZipcode && s.haveStreet,
-      cost: 0.1),
-
+          prerequisite: (EshopCartState s) => s.haveZipcode && s.haveStreet,
+          cost: 0.1),
       new EshopCartModule("Street", (EshopCartState s) {
         s.haveStreet = true;
-      },
-      prerequisite: (EshopCartState s) => s.haveName),
-
+      }, prerequisite: (EshopCartState s) => s.haveName),
       new EshopCartModule("Confirm Shipping Address", (EshopCartState s) {
         s.shippingAddressConfirmed = true;
-      },
-      prerequisite: (EshopCartState s) => s.haveShippingAddress,
-      cost: 1),
-
+      }, prerequisite: (EshopCartState s) => s.haveShippingAddress, cost: 1),
       new EshopCartModule("Invoice Address", (EshopCartState s) {
         s.haveInvoiceAddress = true;
       },
-      prerequisite: (EshopCartState s) => s.needsInvoiceAddress &&
-          (s.haveShippingAddress || !s.needsShippingAddress),
-      cost: 1),
-
+          prerequisite: (EshopCartState s) =>
+              s.needsInvoiceAddress &&
+              (s.haveShippingAddress || !s.needsShippingAddress),
+          cost: 1),
       new EshopCartModule("Invoice Address (copied from shipping)",
           (EshopCartState s) {
         s.haveInvoiceAddress = true;
       },
-      prerequisite: (EshopCartState s) =>
-          s.needsInvoiceAddress && s.haveShippingAddress && invoiceSameAsShipping,
-      cost: 0.1),
-
+          prerequisite: (EshopCartState s) =>
+              s.needsInvoiceAddress &&
+              s.haveShippingAddress &&
+              invoiceSameAsShipping,
+          cost: 0.1),
       new EshopCartModule("Confirm Invoice Address", (EshopCartState s) {
         s.invoiceAddressConfirmed = true;
-      },
-      prerequisite: (EshopCartState s) => s.haveInvoiceAddress,
-      cost: 1),
-
+      }, prerequisite: (EshopCartState s) => s.haveInvoiceAddress, cost: 1),
       new EshopCartModule("Payment Info", (EshopCartState s) {
         s.havePaymentInfo = true;
       },
-      prerequisite: (EshopCartState s) =>
-          (s.haveInvoiceAddress || !s.needsInvoiceAddress) &&
-          (s.haveShippingAddress || !s.needsShippingAddress)),
-
-
+          prerequisite: (EshopCartState s) =>
+              (s.haveInvoiceAddress || !s.needsInvoiceAddress) &&
+              (s.haveShippingAddress || !s.needsShippingAddress)),
       new EshopCartModule("Confirm Payment Info", (EshopCartState s) {
         s.paymentInfoConfirmed = true;
-      },
-      prerequisite: (EshopCartState s) =>
-          s.havePaymentInfo,
-      cost: 1),
-
+      }, prerequisite: (EshopCartState s) => s.havePaymentInfo, cost: 1),
       new EshopCartModule("Log In", (EshopCartState s) {
         if (!userWillLogin) return;
         s.loggedIn = true;
@@ -117,61 +94,51 @@ class EshopCartPlanner {
         s.havePaymentInfo = userHasPaymentInfoSaved;
         // TODO: set according to setup
       }),
-
       new EshopCartModule("Confirm Price", (EshopCartState s) {
         s.priceConfirmed = true;
       },
-      prerequisite: (EshopCartState s) =>
-              !s.isFree && s.havePaymentInfo,
-      cost: 1),
-
+          prerequisite: (EshopCartState s) => !s.isFree && s.havePaymentInfo,
+          cost: 1),
       new EshopCartModule("Confirm Everything", (EshopCartState s) {
         s.shippingAddressConfirmed = true;
         s.invoiceAddressConfirmed = true;
         s.paymentInfoConfirmed = true;
         s.priceConfirmed = true;
       },
-      prerequisite: (EshopCartState s) =>
-          (s.haveShippingAddress || !s.needsShippingAddress) &&
-          (((s.haveInvoiceAddress || !s.needsInvoiceAddress) &&
-            s.havePaymentInfo) || s.isFree),
-      cost: 1),
-
+          prerequisite: (EshopCartState s) =>
+              (s.haveShippingAddress || !s.needsShippingAddress) &&
+              (((s.haveInvoiceAddress || !s.needsInvoiceAddress) &&
+                      s.havePaymentInfo) ||
+                  s.isFree),
+          cost: 1),
       new EshopCartModule("Finish Order", (EshopCartState s) {
         s.orderFinished = true;
       },
-      prerequisite: (EshopCartState s) =>
-          (s.shippingAddressConfirmed || !s.needsShippingAddress) &&
-          ((s.paymentInfoConfirmed && s.priceConfirmed) || s.isFree),
-      cost: 0.5
-      ),
-
+          prerequisite: (EshopCartState s) =>
+              (s.shippingAddressConfirmed || !s.needsShippingAddress) &&
+              ((s.paymentInfoConfirmed && s.priceConfirmed) || s.isFree),
+          cost: 0.5),
       new EshopCartModule("Will Not Ship (non-US)", (EshopCartState s) {
         s.orderFinished = true;
       },
-      prerequisite: (EshopCartState s) =>
-          (!s.isUs && s.shipsToUsOnly && s.haveCountry),
-      cost: 0.5
-      )
-
+          prerequisite: (EshopCartState s) =>
+              (!s.isUs && s.shipsToUsOnly && s.haveCountry),
+          cost: 0.5)
     ];
   }
 
   Future<Queue<Action>> plan() {
-    return _planner.plan(origin, goal, actions,
-        singleUseActions: true);
+    return _planner.plan(origin, goal, actions, singleUseActions: true);
     //  previouslyFailedAction: stealGold,
     //  countdownFailedActionAvoidance: -1);
   }
-
-
 }
 
-class EshopCartModule extends Action {
+class EshopCartModule extends Action<EshopCartState> {
   final String name;
-  EshopCartModule(this.name, EshopCartApplyAction applyFunction, {num cost: 1,
-    ApplicabilityFunction prerequisite}) : super(applyFunction, cost: cost,
-        prerequisite: prerequisite);
+  EshopCartModule(this.name, EshopCartApplyAction applyFunction,
+      {num cost: 1, ApplicabilityFunction<EshopCartState> prerequisite})
+      : super(applyFunction, cost: cost, prerequisite: prerequisite);
 
   toString() => "EshopCartModule<$name>";
 }
@@ -187,8 +154,13 @@ class EshopCartState extends State {
   bool haveUsState = false;
   bool haveCity = false;
   bool haveStreet = false;
-  bool get haveShippingAddress => haveName && haveCountry && haveZipcode &&
-      haveCity && haveStreet && (isUs ? (haveUsState) : (true));
+  bool get haveShippingAddress =>
+      haveName &&
+      haveCountry &&
+      haveZipcode &&
+      haveCity &&
+      haveStreet &&
+      (isUs ? (haveUsState) : (true));
   bool shippingAddressConfirmed = false;
   bool haveInvoiceAddress = false;
   bool invoiceAddressConfirmed = false;
@@ -207,20 +179,47 @@ class EshopCartState extends State {
 
   EshopCartState();
 
-  EshopCartState._internal(this.haveName, this.haveCountry,
-      this.isUs, this.haveZipcode, this.haveUsState, this.haveCity,
-      this.haveStreet, this.shippingAddressConfirmed, this.haveInvoiceAddress,
-      this.invoiceAddressConfirmed, this.havePaymentInfo,
-      this.paymentInfoConfirmed, this.loggedIn, this.orderFinished,
-      this.priceConfirmed, this.cost, this.needsShippingAddress,
-      this.needsInvoiceAddress, this.shipsToUsOnly);
+  EshopCartState._internal(
+      this.haveName,
+      this.haveCountry,
+      this.isUs,
+      this.haveZipcode,
+      this.haveUsState,
+      this.haveCity,
+      this.haveStreet,
+      this.shippingAddressConfirmed,
+      this.haveInvoiceAddress,
+      this.invoiceAddressConfirmed,
+      this.havePaymentInfo,
+      this.paymentInfoConfirmed,
+      this.loggedIn,
+      this.orderFinished,
+      this.priceConfirmed,
+      this.cost,
+      this.needsShippingAddress,
+      this.needsInvoiceAddress,
+      this.shipsToUsOnly);
 
   @override
-  EshopCartState clone() => new EshopCartState._internal(haveName, haveCountry,
-      isUs, haveZipcode, haveUsState, haveCity, haveStreet,
-      shippingAddressConfirmed, haveInvoiceAddress, invoiceAddressConfirmed,
-      havePaymentInfo, paymentInfoConfirmed, loggedIn, orderFinished,
-      priceConfirmed, cost, needsShippingAddress, needsInvoiceAddress,
+  EshopCartState clone() => new EshopCartState._internal(
+      haveName,
+      haveCountry,
+      isUs,
+      haveZipcode,
+      haveUsState,
+      haveCity,
+      haveStreet,
+      shippingAddressConfirmed,
+      haveInvoiceAddress,
+      invoiceAddressConfirmed,
+      havePaymentInfo,
+      paymentInfoConfirmed,
+      loggedIn,
+      orderFinished,
+      priceConfirmed,
+      cost,
+      needsShippingAddress,
+      needsInvoiceAddress,
       shipsToUsOnly);
 }
 
@@ -229,12 +228,19 @@ class EshopCartDesired extends DesiredState<EshopCartState> {
   num getHeuristicDistanceFrom(EshopCartState s, {Object params}) {
     // If we want breadth-first search, just return 1. _Very_ expensive.
     // return 1;
-    return _cnt(s.haveCountry) + _cnt(s.havePaymentInfo) +
-        _cnt(s.paymentInfoConfirmed) + _cnt(s.haveInvoiceAddress) +
-        _cnt(s.haveName) + _cnt(s.haveShippingAddress) +
-        _cnt(s.haveStreet) + _cnt(s.haveUsState) + _cnt(s.haveZipcode) +
-        _cnt(s.invoiceAddressConfirmed) + _cnt(s.loggedIn) +
-        _cnt(s.priceConfirmed) + _cnt(s.shippingAddressConfirmed) +
+    return _cnt(s.haveCountry) +
+        _cnt(s.havePaymentInfo) +
+        _cnt(s.paymentInfoConfirmed) +
+        _cnt(s.haveInvoiceAddress) +
+        _cnt(s.haveName) +
+        _cnt(s.haveShippingAddress) +
+        _cnt(s.haveStreet) +
+        _cnt(s.haveUsState) +
+        _cnt(s.haveZipcode) +
+        _cnt(s.invoiceAddressConfirmed) +
+        _cnt(s.loggedIn) +
+        _cnt(s.priceConfirmed) +
+        _cnt(s.shippingAddressConfirmed) +
         _cnt(s.orderFinished);
   }
 
@@ -246,12 +252,12 @@ class EshopCartDesired extends DesiredState<EshopCartState> {
 }
 
 main() {
-
   var planner = new EshopCartPlanner();
   planner.plan().then((solution) {
     print(solution.length);
     for (EshopCartModule action in solution) {
-      print("State heuristic distance: ${planner.goal.getHeuristicDistanceFrom(planner.origin)}");
+      print(
+          "State heuristic distance: ${planner.goal.getHeuristicDistanceFrom(planner.origin)}");
       print(">> ${action.name}");
       planner.origin = action.createNewNodeFrom(planner.origin);
     }

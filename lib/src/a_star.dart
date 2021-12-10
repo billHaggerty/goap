@@ -8,6 +8,8 @@ library goap.a_star;
 import 'dart:collection';
 import 'dart:async';
 
+import '../goap.dart';
+
 /**
  * Mixin class with which the nodes (graph vertices) should be extended. For
  * example:
@@ -24,7 +26,7 @@ class Node extends Object {
   num _g;
   Node _parent;
   EdgeType _arrivalMethod;
-  bool _isInOpenSet = false;  // Much faster than finding nodes in iterables.
+  bool _isInOpenSet = false; // Much faster than finding nodes in iterables.
   bool _isInClosedSet = false;
 }
 
@@ -54,7 +56,7 @@ abstract class GoalMatcher<T extends Node> {
   bool match(T node);
 
   /// Returns the heuristic distance from [node] to the goal.
-  num getHeuristicDistanceFrom(T node, {Object params});
+  num getHeuristicDistanceFrom(T node, {FindPathParams params});
 }
 
 /// Simple implementation of [GoalMatcher]. This one only matches one node
@@ -114,11 +116,12 @@ class AStar<T extends Node, S extends EdgeType> {
    * TODO: Optional weighing for suboptimal, but faster path finding.
    * http://en.wikipedia.org/wiki/A*_search_algorithm#Bounded_relaxation
    */
-  Future<Queue<S>> findPath(T start, GoalMatcher goalMatcher,
-      Iterable<S> traversalWays, {bool singleUseWays: false, Object params}) {
-    return new Future<Queue<S>>(
-        () => findPathSync(start, goalMatcher, traversalWays,
-            singleUseWays: singleUseWays, params: params));
+  Future<Queue<S>> findPath(
+      T start, GoalMatcher goalMatcher, Iterable<S> traversalWays,
+      {bool singleUseWays: false, Object params}) {
+    return new Future<Queue<S>>(() => findPathSync(
+        start, goalMatcher, traversalWays,
+        singleUseWays: singleUseWays, params: params));
   }
 
   /**
@@ -131,11 +134,11 @@ class AStar<T extends Node, S extends EdgeType> {
    * TODO: Optional weighing for suboptimal, but faster path finding.
    * http://en.wikipedia.org/wiki/A*_search_algorithm#Bounded_relaxation
    */
-  Queue<S> findPathSync(T start, GoalMatcher goalMatcher,
-                        Iterable<S> traversalWays,
-                        {bool singleUseWays: false, Object params}) {
-    return _findPathInternal(start, goalMatcher, traversalWays,
-        singleUseWays, params);
+  Queue<S> findPathSync(
+      T start, GoalMatcher goalMatcher, Iterable<S> traversalWays,
+      {bool singleUseWays: false, Object params}) {
+    return _findPathInternal(
+        start, goalMatcher, traversalWays, singleUseWays, params);
   }
 
   Queue<S> _findPathInternal(T start, GoalMatcher goalMatcher,
@@ -168,12 +171,12 @@ class AStar<T extends Node, S extends EdgeType> {
           currentNode = currentNode._parent;
         }
 
-        return path;  // TODO: return something when already there (no path, but success!)
+        return path; // TODO: return something when already there (no path, but success!)
       }
 
       open.remove(currentNode);
-      currentNode._isInOpenSet = false;  // Much faster than finding nodes
-                                         // in iterables.
+      currentNode._isInOpenSet = false; // Much faster than finding nodes
+      // in iterables.
       lastClosed = currentNode;
       currentNode._isInClosedSet = true;
 
@@ -181,9 +184,9 @@ class AStar<T extends Node, S extends EdgeType> {
 
       // Get only ways that are applicable and (if singleUseWays is true) also
       // that haven't been used previously.
-      Iterable<S> applicableWays = traversalWays
-          .where((S way) => way.applicable(currentNode, params) &&
-                 (!singleUseWays || _wayNotInParents(way, currentNode)));
+      Iterable<S> applicableWays = traversalWays.where((S way) =>
+          way.applicable(currentNode, params) &&
+          (!singleUseWays || _wayNotInParents(way, currentNode)));
 
       for (S way in applicableWays) {
         T node = way.createNewNodeFrom(currentNode);
@@ -205,8 +208,8 @@ class AStar<T extends Node, S extends EdgeType> {
             candidate._parent = lastClosed;
 
             candidate._g = currentNode._g + distance;
-            num h = goalMatcher.getHeuristicDistanceFrom(candidate,
-                params: params);
+            num h =
+                goalMatcher.getHeuristicDistanceFrom(candidate, params: params);
             candidate._f = candidate._g + h;
 
             open.add(candidate);
@@ -230,5 +233,4 @@ class AStar<T extends Node, S extends EdgeType> {
     }
     return true;
   }
-
 }

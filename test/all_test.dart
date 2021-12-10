@@ -3,19 +3,19 @@
 
 library goap.test;
 
-import 'package:unittest/unittest.dart';
-import 'package:goap/goap.dart';
+import 'package:test/test.dart';
+//import 'package:goap/goap.dart';
 
 main() {
   group('A group of tests', () {
-    Awesome awesome;
+    bool awesome;
 
     setUp(() {
-      awesome = new Awesome();
+      awesome = true;
     });
 
     test('First Test', () {
-      expect(awesome.isAwesome, isTrue);
+      expect(awesome, isTrue);
     });
   });
 }
