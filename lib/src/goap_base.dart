@@ -18,13 +18,13 @@ abstract class State extends Object with Node {
 abstract class DesiredState<T extends State> extends GoalMatcher<T> {}
 
 class SimpleStateFactMap {
-  Map<String, dynamic> facts;
+  Map<String, dynamic>? facts;
 }
 
 class SimpleState extends State with SimpleStateFactMap {
   State clone() {
     SimpleState clone = new SimpleState();
-    clone.facts = new Map<String, Object>.from(facts);
+    clone.facts = new Map<String, Object>.from(facts!);
     return clone;
   }
 
@@ -34,15 +34,15 @@ class SimpleState extends State with SimpleStateFactMap {
 class SimpleDesiredState extends DesiredState<SimpleState>
     with SimpleStateFactMap {
   @override
-  num getHeuristicDistanceFrom(SimpleState node, {FindPathParams params}) {
+  num getHeuristicDistanceFrom(SimpleState node, {FindPathParams? params}) {
     num result = 0;
-    Set stateKeys = _getMapKeysUnion(facts, node.facts);
+    Set stateKeys = _getMapKeysUnion(facts!, node.facts);
     for (var key in stateKeys) {
-      if (!facts.containsKey(key) || !node.facts.containsKey(key)) {
+      if (!facts!.containsKey(key) || !node.facts!.containsKey(key)) {
         continue;
-      } else if (facts[key] != node.facts[key]) {
-        var value = facts[key];
-        var otherValue = node.facts[key];
+      } else if (facts![key] != node.facts![key]) {
+        var value = facts![key];
+        var otherValue = node.facts![key];
         if (value is num && otherValue is num) {
           result += ((value as int) - (otherValue as int)).abs();
         } else {
@@ -55,9 +55,9 @@ class SimpleDesiredState extends DesiredState<SimpleState>
 
   @override
   bool match(SimpleState node) {
-    for (String key in facts.keys) {
-      if (!node.facts.containsKey(key)) return false;
-      if (facts[key] != node.facts[key]) return false;
+    for (String key in facts!.keys) {
+      if (!node.facts!.containsKey(key)) return false;
+      if (facts![key] != node.facts![key]) return false;
     }
     return true;
   }
@@ -78,20 +78,20 @@ class Action<T extends State> extends EdgeType<T> {
   final ApplyAction<T> applyFunction;
 
   /// Prerequisite. Checks whether the action can be applied to given State.
-  final ApplicabilityFunction<T> prerequisite;
+  final ApplicabilityFunction<T>? prerequisite;
 
   /// Cost of this action.
 //  num cost = 1;
 
   @override
   T createNewNodeFrom(T node) {
-    T newState = node.clone();
+    T newState = node.clone() as T;
     applyFunction(newState);
     return newState;
   }
 
   @override
-  bool applicable(T state, Object params) {
+  bool? applicable(T state, Object? params) {
     if (params != null &&
         params is FindPathParams &&
         params.previouslyFailedAction == this) {
@@ -104,17 +104,17 @@ class Action<T extends State> extends EdgeType<T> {
       return false;
     }
     if (prerequisite == null) return true;
-    return prerequisite(state);
+    return prerequisite!(state);
   }
 }
 
-typedef bool ApplicabilityFunction<T extends State>(T state);
+typedef bool? ApplicabilityFunction<T extends State>(T state);
 typedef void ApplyAction<T extends State>(T state);
 
 class FindPathParams<T extends Action> {
   FindPathParams(this.availableActions, this.previouslyFailedAction);
   final Set<T> availableActions;
-  T previouslyFailedAction;
+  T? previouslyFailedAction;
 
   /// The number of times the action is being avoided before it's tried again.
   /// Set to [:-1:] to avoid the action for the whole time of path finding.
@@ -132,9 +132,9 @@ class Planner<T extends Action> {
   /// We avoid it once time by default, but can avoid it for longer periods
   /// by setting [countdownFailedActionAvoidance]. Value [:-1:] is magical: it
   /// will avoid [previouslyFailedAction] for the whole duration of the plan.
-  Future<Queue<T>> plan(
+  Future<Queue<T>?> plan(
       State origin, DesiredState desiredState, Iterable<T> actions,
-      {T previouslyFailedAction,
+      {T? previouslyFailedAction,
       int countdownFailedActionAvoidance: 1,
       bool singleUseActions: false}) {
     if (actions is! Set<T>) {
@@ -152,7 +152,7 @@ class Planner<T extends Action> {
   final AStar<State, T> _aStar = new AStar<State, T>();
 }
 
-Set _getMapKeysUnion(Map a, Map b) {
+Set _getMapKeysUnion(Map a, Map? b) {
   Set stateKeys = new Set.from(a.keys);
   stateKeys = stateKeys.union(new Set.from(a.keys));
   return stateKeys;

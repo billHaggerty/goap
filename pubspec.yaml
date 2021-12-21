@@ -1,9 +1,9 @@
 name: goap_bh
-version: 0.0.2
+version: 0.0.3
 description: Goal Oriented Action Planning library. Forked from https://github.com/filiph/goap
 repository: https://github.com/billHaggerty/goap/tree/goap_bh
 homepage: https://g.dev/billHaggerty
 environment:
-  sdk: '>=2.10.0 <3.0.0'
+  sdk: '>=2.12.0 <3.0.0'
 dev_dependencies:
   test: any

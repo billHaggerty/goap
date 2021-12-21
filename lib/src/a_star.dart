@@ -22,10 +22,10 @@ import '../goap_bh.dart';
  *     class MyTraversableTile extends MyTile with Node { /* ... */ }
  */
 class Node extends Object {
-  num _f;
-  num _g;
-  Node _parent;
-  EdgeType _arrivalMethod;
+  late num _f;
+  late num _g;
+  Node? _parent;
+  EdgeType? _arrivalMethod;
   bool _isInOpenSet = false; // Much faster than finding nodes in iterables.
   bool _isInClosedSet = false;
 }
@@ -38,25 +38,25 @@ class Node extends Object {
  * For example, in a 2D tile map, there would be 8 edge types, one for every
  * direction (north, northeast, east, southeast, and so on).
  */
-abstract class EdgeType<T extends Node> {
+abstract class EdgeType<T extends Node?> {
   /// Takes [node] and returns the node that results from traversing / using
   /// the edge type from that node.
   T createNewNodeFrom(T node);
 
   /// Returns [:true:] if the edge type is applicable to the [node].
-  bool applicable(T node, Object params);
+  bool? applicable(T node, Object? params);
 
   /// The cost of traversing through this edge type.
-  num cost;
+  num? cost;
 }
 
 /// Implement this class to give the A* search a goal.
-abstract class GoalMatcher<T extends Node> {
+abstract class GoalMatcher<T extends Node?> {
   /// Returns [:true:] when [node] matches the goal.
-  bool match(T node);
+  bool? match(T node);
 
   /// Returns the heuristic distance from [node] to the goal.
-  num getHeuristicDistanceFrom(T node, {FindPathParams params});
+  num getHeuristicDistanceFrom(T node, {FindPathParams? params});
 }
 
 /// Simple implementation of [GoalMatcher]. This one only matches one node
@@ -71,14 +71,14 @@ class SimpleGoalMatcher<T extends Node> extends GoalMatcher<T> {
   bool match(T node) => goal == node;
 
   @override
-  num getHeuristicDistanceFrom(T node, {Object params}) {
+  num getHeuristicDistanceFrom(T node, {Object? params}) {
     return getCostFunction(node, goal, params);
   }
 }
 
-typedef Iterable<Node> GetNeighboursFunction(Node node, Object params);
-typedef Iterable<EdgeType> GetWaysFunction(Node node, Object params);
-typedef num GetCostFunction(Node a, Node b, Object params);
+//typedef Iterable<Node> GetNeighboursFunction(Node node, Object params);
+//typedef Iterable<EdgeType> GetWaysFunction(Node node, Object params);
+typedef num GetCostFunction(Node a, Node b, Object? params);
 
 /**
  * The A* Star algorithm itself.
@@ -116,10 +116,10 @@ class AStar<T extends Node, S extends EdgeType> {
    * TODO: Optional weighing for suboptimal, but faster path finding.
    * http://en.wikipedia.org/wiki/A*_search_algorithm#Bounded_relaxation
    */
-  Future<Queue<S>> findPath(
+  Future<Queue<S>?> findPath(
       T start, GoalMatcher goalMatcher, Iterable<S> traversalWays,
-      {bool singleUseWays: false, Object params}) {
-    return new Future<Queue<S>>(() => findPathSync(
+      {bool singleUseWays: false, Object? params}) {
+    return new Future<Queue<S>?>(() => findPathSync(
         start, goalMatcher, traversalWays,
         singleUseWays: singleUseWays, params: params));
   }
@@ -134,19 +134,19 @@ class AStar<T extends Node, S extends EdgeType> {
    * TODO: Optional weighing for suboptimal, but faster path finding.
    * http://en.wikipedia.org/wiki/A*_search_algorithm#Bounded_relaxation
    */
-  Queue<S> findPathSync(
+  Queue<S>? findPathSync(
       T start, GoalMatcher goalMatcher, Iterable<S> traversalWays,
-      {bool singleUseWays: false, Object params}) {
+      {bool singleUseWays: false, Object? params}) {
     return _findPathInternal(
         start, goalMatcher, traversalWays, singleUseWays, params);
   }
 
-  Queue<S> _findPathInternal(T start, GoalMatcher goalMatcher,
-      Iterable<S> traversalWays, bool singleUseWays, Object params) {
+  Queue<S>? _findPathInternal(T start, GoalMatcher goalMatcher,
+      Iterable<S> traversalWays, bool singleUseWays, Object? params) {
     if (!_zeroed) _zeroNodes();
 
     final Queue<T> open = new Queue<T>();
-    Node lastClosed;
+    Node? lastClosed;
 
     open.add(start);
     start._isInOpenSet = true;
@@ -157,25 +157,25 @@ class AStar<T extends Node, S extends EdgeType> {
 
     while (open.isNotEmpty) {
       // Find node with best (lowest) cost.
-      T currentNode = open.fold(null, (T a, T b) {
+      T? currentNode = open.fold(null, (T? a, T b) {
         if (a == null) return b;
         return a._f < b._f ? a : b;
       });
 
-      if (goalMatcher.match(currentNode)) {
+      if (goalMatcher.match(currentNode)!) {
         final Queue<S> path = new Queue<S>();
 
         // Go up the chain to recreate the path
-        while (currentNode._arrivalMethod != null) {
-          path.addFirst(currentNode._arrivalMethod);
-          currentNode = currentNode._parent;
+        while (currentNode!._arrivalMethod != null) {
+          path.addFirst(currentNode._arrivalMethod as S);
+          currentNode = currentNode._parent as T?;
         }
 
         return path; // TODO: return something when already there (no path, but success!)
       }
 
       open.remove(currentNode);
-      currentNode._isInOpenSet = false; // Much faster than finding nodes
+      currentNode!._isInOpenSet = false; // Much faster than finding nodes
       // in iterables.
       lastClosed = currentNode;
       currentNode._isInClosedSet = true;
@@ -185,20 +185,20 @@ class AStar<T extends Node, S extends EdgeType> {
       // Get only ways that are applicable and (if singleUseWays is true) also
       // that haven't been used previously.
       Iterable<S> applicableWays = traversalWays.where((S way) =>
-          way.applicable(currentNode, params) &&
-          (!singleUseWays || _wayNotInParents(way, currentNode)));
+          way.applicable(currentNode, params)! &&
+          (!singleUseWays || _wayNotInParents(way, currentNode!)));
 
       for (S way in applicableWays) {
-        T node = way.createNewNodeFrom(currentNode);
+        T node = way.createNewNodeFrom(currentNode) as T;
         node._arrivalMethod = way;
         candidates.add(node);
         allNodes.add(node);
       }
 
       for (final T candidate in candidates) {
-        num distance = candidate._arrivalMethod.cost;
+        num? distance = candidate._arrivalMethod!.cost;
 
-        if (distance != null || (goalMatcher.match(candidate))) {
+        if (distance != null || goalMatcher.match(candidate)!) {
           // If the new node is open or the new node is our destination.
           if (candidate._isInClosedSet) {
             continue;
@@ -207,9 +207,9 @@ class AStar<T extends Node, S extends EdgeType> {
           if (!candidate._isInOpenSet) {
             candidate._parent = lastClosed;
 
-            candidate._g = currentNode._g + distance;
-            num h =
-                goalMatcher.getHeuristicDistanceFrom(candidate, params: params);
+            candidate._g = currentNode._g + distance!;
+            num h = goalMatcher.getHeuristicDistanceFrom(candidate,
+                params: params as FindPathParams<Action<State>>?);
             candidate._f = candidate._g + h;
 
             open.add(candidate);
@@ -229,7 +229,7 @@ class AStar<T extends Node, S extends EdgeType> {
   bool _wayNotInParents(S way, T currentNode) {
     while (currentNode._parent != null) {
       if (currentNode._arrivalMethod == way) return false;
-      currentNode = currentNode._parent;
+      currentNode = currentNode._parent as T;
     }
     return true;
   }
